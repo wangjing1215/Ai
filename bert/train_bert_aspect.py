@@ -5,6 +5,8 @@ from torch.utils.data import Dataset, DataLoader
 import numpy as np
 import pandas as pd
 import json
+import random
+import os
 from sklearn.model_selection import train_test_split
 from tqdm import tqdm
 
@@ -15,17 +17,32 @@ ASPECT_CATEGORIES = [
 ]
 
 class BluetoothHeadphoneDataset(Dataset):
-    def __init__(self, texts, labels=None, tokenizer=None, max_length=128):
+    def __init__(self, texts, labels=None, tokenizer=None, max_length=88, is_training=False):
         self.texts = texts
         self.labels = labels
         self.tokenizer = tokenizer
         self.max_length = max_length
+        self.is_training = is_training
+        
+        # 数据增强
+        self.augment_prob = 0.3 if is_training else 0.0  # 只在训练时进行数据增强
 
     def __len__(self):
         return len(self.texts)
 
     def __getitem__(self, idx):
         text = str(self.texts[idx])
+        
+        # 随机数据增强
+        if self.is_training and random.random() < self.augment_prob:
+            # 随机删除一些字符
+            words = list(text)
+            num_to_delete = random.randint(1, max(1, len(words) // 10))
+            for _ in range(num_to_delete):
+                if words:
+                    del words[random.randint(0, len(words) - 1)]
+            text = ''.join(words)
+        
         encoding = self.tokenizer(text,
                                 truncation=True,
                                 padding='max_length',
@@ -72,6 +89,8 @@ class AspectClassifier(nn.Module):
     def __init__(self, num_aspects=8):
         super(AspectClassifier, self).__init__()
         self.bert = BertModel.from_pretrained('/root/bert-base-chinese')
+        self.bert.config.hidden_dropout_prob = 0.2  # 增加dropout
+        self.bert.config.attention_probs_dropout_prob = 0.2
         hidden_size = self.bert.config.hidden_size
         
         # 注意力层和前馈网络
