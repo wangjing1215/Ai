@@ -1,0 +1,12 @@
+{
+    "app.log": {
+        "time_pattern": "\\d{4}-\\d{2}-\\d{2}\\s\\d{2}:\\d{2}:\\d{2}",
+        "time_format": "%Y-%m-%d %H:%M:%S",
+        "encoding": "utf-8"
+    },
+    "error.log": {
+        "time_pattern": "\\[\\d{4}/\\d{2}/\\d{2}\\s\\d{2}:\\d{2}:\\d{2}\\]",
+        "time_format": "[%Y/%m/%d %H:%M:%S]",
+        "encoding": "utf-8"
+    }
+} 
